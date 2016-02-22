@@ -21,12 +21,10 @@ namespace Ferret
 
     public class AggregateRepository : IAggregateRepository, IAdvancedAggregateRepository
     {
-        private readonly IDocumentSession _lightweight;
         private readonly IDocumentSession _session;
 
         public AggregateRepository(IDocumentStore store)
         {
-            _lightweight = store.LightweightSession();
             _session = store.DirtyTrackedSession();
         }
 
@@ -35,7 +33,7 @@ namespace Ferret
             where TState : class, IState, new()
         {
             var factory = new AggregateFactory();
-            var state = _lightweight.Load<TState>(id ?? Guid.Empty);
+            var state = _session.Load<TState>(id ?? Guid.Empty);
             if (state == null)
             {
                 state = new TState();
@@ -53,7 +51,7 @@ namespace Ferret
                 throw new FerretException("Aggregate Id cannot be empty");
             }
 
-            if (_lightweight.Load<TState>(aggregate.Id) == null)
+            if (_session.Load<TState>(aggregate.Id) == null)
             {
                 _session.Store(aggregate.State);
             }
@@ -86,10 +84,6 @@ namespace Ferret
 
         public void Dispose()
         {
-            if (_lightweight != null)
-            {
-                _lightweight.Dispose();
-            }
             if (_session != null)
             {
                 _session.SaveChanges();
