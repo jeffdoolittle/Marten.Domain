@@ -48,5 +48,52 @@ namespace Ferret
             });
             return store;
         }
+
+        public void TearDown()
+        {
+            var builder = new NpgsqlConnectionStringBuilder(_targetConnectionString);
+            var targetDatabaseName = builder.Database;
+
+            using (var connection = new NpgsqlConnection(_masterConnectionString))
+            {
+                connection.Open();
+                var existsCommand = connection.CreateCommand();
+                existsCommand.CommandText = "select (count(*) > 0)::boolean as exists from pg_database where datname=:0";
+                existsCommand.Parameters.Add(new NpgsqlParameter("0", targetDatabaseName));
+                var exists = (bool)existsCommand.ExecuteScalar();
+                if (!exists)
+                {
+                    var createCommand = connection.CreateCommand();
+                    createCommand.CommandText = string.Format("CREATE DATABASE \"{0}\"", targetDatabaseName);
+                    createCommand.ExecuteNonQuery();
+                }
+            }
+            var store = DocumentStore.For(cfg =>
+            {
+                cfg.Connection(_targetConnectionString);
+            });
+            store.Advanced.Clean.CompletelyRemoveAll();
+        }
+
+        public void Drop()
+        {
+            var builder = new NpgsqlConnectionStringBuilder(_targetConnectionString);
+            var targetDatabaseName = builder.Database;
+
+            using (var connection = new NpgsqlConnection(_masterConnectionString))
+            {
+                connection.Open();
+                var existsCommand = connection.CreateCommand();
+                existsCommand.CommandText = "select (count(*) > 0)::boolean as exists from pg_database where datname=:0";
+                existsCommand.Parameters.Add(new NpgsqlParameter("0", targetDatabaseName));
+                var exists = (bool)existsCommand.ExecuteScalar();
+                if (exists)
+                {
+                    var createCommand = connection.CreateCommand();
+                    createCommand.CommandText = string.Format("DROP DATABASE \"{0}\"", targetDatabaseName);
+                    createCommand.ExecuteNonQuery();
+                }
+            }
+        }
     }
 }

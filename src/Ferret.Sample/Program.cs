@@ -7,9 +7,7 @@ using Topshelf;
 using Topshelf.Nancy;
 using Nancy;
 using log4net.Config;
-using Nancy.TinyIoc;
 using Ferret.Sample.Domain;
-using Nancy.Bootstrapper;
 using log4net;
 using Nancy.ModelBinding;
 
@@ -17,34 +15,34 @@ namespace Ferret.Sample
 {
     class Program
     {
+        private static readonly ILog Log = LogManager.GetLogger(typeof(Program));
+
         static void Main(string[] args)
         {
             XmlConfigurator.Configure();
+            string target = GetTargetConnectionString();
+            string master = GetMasterConnectionString(target);
+            var initializer = new Initializer(master, target);
 
-            if (args != null && args.Any(x => x.ToLowerInvariant() == "--init"))
+            if (args != null && args.Any(x => x.ToLowerInvariant() == "--tear-down"))
             {
-                string target = GetTargetConnectionString();
-                string master = GetMasterConnectionString(target);
-
-                var store = new Initializer(master, target).Initialize(ConfigureSchema);
-
+                Log.Info("Tearing down...");
+                initializer.TearDown();
                 return;
             }
-            else if (args != null && args.Any(x => x.ToLowerInvariant() == "--tear-down"))
+            else if (args != null && args.Any(x => x.ToLowerInvariant() == "--drop"))
             {
-                string target = GetTargetConnectionString();
-                string master = GetMasterConnectionString(target);
-
-                var store = new Initializer(master, target).Initialize(ConfigureSchema);
-
-                store.Advanced.Clean.CompletelyRemoveAll();
+                Log.Info("Dropping...");
+                initializer.Drop();
                 return;
             }
+
+            Log.Info("Initializing...");
+            var store = new Initializer(master, target).Initialize(ConfigureSchema);
 
             var host = HostFactory.New(x =>
             {
                 x.UseLog4Net();
-
                 x.Service<SampleService>(s =>
                 {
                     s.ConstructUsing(settings => new SampleService());
@@ -52,6 +50,7 @@ namespace Ferret.Sample
                     s.WhenStopped(service => service.Stop());
                     s.WithNancyEndpoint(x, c =>
                     {
+                        c.Bootstrapper = new Bootstrapper(store);
                         c.AddHost(port: 8585);
                         c.CreateUrlReservationsOnInstall();
                     });
@@ -62,6 +61,18 @@ namespace Ferret.Sample
             });
 
             host.Run();
+        }
+ 
+        private class SampleService
+        {
+            public bool Start()
+            {
+                return true;
+            }
+            public bool Stop()
+            {
+                return true;
+            }
         }
 
         public static string GetMasterConnectionString(string target)
@@ -88,53 +99,6 @@ namespace Ferret.Sample
         static void ConfigureSchema(MartenRegistry cfg)
         {
 
-        }
-    }
-
-    public class Bootstrapper : DefaultNancyBootstrapper
-    {
-        protected override void ConfigureApplicationContainer(TinyIoCContainer container)
-        {
-            base.ConfigureApplicationContainer(container);
-
-            string target = Program.GetTargetConnectionString();
-
-            var store = DocumentStore.For(target);
-
-            container.Register<IDocumentStore>(store);
-        }
-
-        protected override void ConfigureRequestContainer(TinyIoCContainer container, NancyContext context)
-        {
-            base.ConfigureRequestContainer(container, context);
-
-            var store = container.Resolve<IDocumentStore>();
-            var repository = new AggregateRepository(store);
-
-            container.Register<IAggregateRepository>(repository);
-        }
-
-        protected override void ApplicationStartup(TinyIoCContainer container, IPipelines pipelines)
-        {
-            base.ApplicationStartup(container, pipelines);
-
-            pipelines.BeforeRequest += (NancyContext ctx) =>
-            {
-                var log = LogManager.GetLogger("Nancy.BeforeRequest");
-                log.InfoFormat("[{0}] {1}", ctx.Request.Method, ctx.Request.Url);
-                return null;
-            };
-            pipelines.AfterRequest += (NancyContext ctx) =>
-            {
-                var log = LogManager.GetLogger("Nancy.AfterRequest");
-                log.InfoFormat("{0} [{1}] {2}", (int)ctx.Response.StatusCode, ctx.Request.Method, ctx.Request.Url);
-            };
-            pipelines.OnError += (ctx, ex) =>
-            {
-                var log = LogManager.GetLogger("Nancy.OnError");
-                log.ErrorFormat("[{0}] {1}\r\n{2}", ctx.Request.Method, ctx.Request.Url, ex);
-                return null;
-            };
         }
     }
 
@@ -173,18 +137,6 @@ namespace Ferret.Sample
                 manager.When(command);
                 return HttpStatusCode.OK;
             };
-        }
-    }
-
-    public class SampleService
-    {
-        public bool Start()
-        {
-            return true;
-        }
-        public bool Stop()
-        {
-            return true;
         }
     }
 }
