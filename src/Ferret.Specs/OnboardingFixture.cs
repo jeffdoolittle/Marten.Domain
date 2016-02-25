@@ -7,9 +7,9 @@ namespace Ferret.Specs
 {
     public class OnboardingFixture : DocumentStoreFixture
     {
-        protected override void ConfigureSchema(MartenRegistry cfg)
+        protected override void ConfigureStore(StoreOptions registry)
         {
-            cfg.For<Onboarding.State>().Searchable(x => x.Email);
+            registry.Schema.For<Onboarding.State>().Searchable(x => x.Email);
         }
 
         [Fact]

@@ -24,11 +24,17 @@ namespace Ferret.Specs
             builder.Database = "postgres";
             var master = builder.ConnectionString;
 
-            _theStore = new Initializer(master, target).Initialize(ConfigureSchema);
+            _theStore = new Initializer(master, target).Initialize(Configure);
             _theStore.Advanced.Clean.CompletelyRemoveAll();
         }
 
-        protected virtual void ConfigureSchema(MartenRegistry cfg)
+        private void Configure(StoreOptions registry)
+        {
+            registry.AutoCreateSchemaObjects = true;
+            ConfigureStore(registry);
+        }
+
+        protected virtual void ConfigureStore(StoreOptions registry)
         {
         }
     }

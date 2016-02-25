@@ -24,7 +24,14 @@ namespace Ferret.Sample
             string master = GetMasterConnectionString(target);
             var initializer = new Initializer(master, target);
 
-            if (args != null && args.Any(x => x.ToLowerInvariant() == "--tear-down"))
+            if (args != null && args.Any(x => x.ToLowerInvariant() == "--init"))
+            {
+                Log.Info("Initializing...");
+                var store = new Initializer(master, target).Initialize(ConfigureStore);
+                store.Dispose();
+                return;
+            }
+            else if (args != null && args.Any(x => x.ToLowerInvariant() == "--tear-down"))
             {
                 Log.Info("Tearing down...");
                 initializer.TearDown();
@@ -37,9 +44,6 @@ namespace Ferret.Sample
                 return;
             }
 
-            Log.Info("Initializing...");
-            var store = new Initializer(master, target).Initialize(ConfigureSchema);
-
             var host = HostFactory.New(x =>
             {
                 x.UseLog4Net();
@@ -50,7 +54,7 @@ namespace Ferret.Sample
                     s.WhenStopped(service => service.Stop());
                     s.WithNancyEndpoint(x, c =>
                     {
-                        c.Bootstrapper = new Bootstrapper(store);
+                        c.Bootstrapper = new Bootstrapper(new Initializer(master, target).Initialize(ConfigureStore));
                         c.AddHost(port: 8585);
                         c.CreateUrlReservationsOnInstall();
                     });
@@ -96,7 +100,7 @@ namespace Ferret.Sample
             return target;
         }
 
-        static void ConfigureSchema(MartenRegistry cfg)
+        static void ConfigureStore(StoreOptions register)
         {
 
         }
