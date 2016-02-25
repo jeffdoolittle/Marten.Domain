@@ -20,6 +20,8 @@ namespace Ferret
             var builder = new NpgsqlConnectionStringBuilder(_targetConnectionString);
             var targetDatabaseName = builder.Database;
 
+            var databaseNotFound = false;
+
             using (var connection = new NpgsqlConnection(_masterConnectionString))
             {
                 connection.Open();
@@ -29,11 +31,13 @@ namespace Ferret
                 var exists = (bool)existsCommand.ExecuteScalar();
                 if (!exists)
                 {
+                    databaseNotFound = true;
                     var createCommand = connection.CreateCommand();
                     createCommand.CommandText = string.Format("CREATE DATABASE \"{0}\"", targetDatabaseName);
                     createCommand.ExecuteNonQuery();
                 }
             }
+
             var store = DocumentStore.For(cfg =>
             {
                 cfg.Connection(_targetConnectionString);
@@ -45,6 +49,19 @@ namespace Ferret
                     register(cfg);
                 }
             });
+
+            if (databaseNotFound)
+            {
+                var ddl = store.Schema.ToDDL();
+                using (var connection = new NpgsqlConnection(_targetConnectionString))
+                {
+                    connection.Open();
+                    var ddlCommand = connection.CreateCommand();
+                    ddlCommand.CommandText = ddl;
+                    ddlCommand.ExecuteNonQuery();
+                }
+            }
+
             return store;
         }
 

@@ -28,7 +28,7 @@ namespace Ferret.Sample
             {
                 Log.Info("Initializing...");
                 var store = new Initializer(master, target).Initialize(ConfigureStore);
-                store.Dispose();
+                Log.Debug(store.Schema.ToDDL());
                 return;
             }
             else if (args != null && args.Any(x => x.ToLowerInvariant() == "--tear-down"))
