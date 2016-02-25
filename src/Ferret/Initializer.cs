@@ -1,6 +1,7 @@
 ﻿using System;
 using Npgsql;
 using Marten;
+using Marten.Services;
 
 namespace Ferret
 {

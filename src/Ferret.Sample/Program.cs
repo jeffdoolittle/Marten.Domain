@@ -5,11 +5,8 @@ using Npgsql;
 using Marten;
 using Topshelf;
 using Topshelf.Nancy;
-using Nancy;
 using log4net.Config;
-using Ferret.Sample.Domain;
 using log4net;
-using Nancy.ModelBinding;
 
 namespace Ferret.Sample
 {
@@ -102,45 +99,11 @@ namespace Ferret.Sample
 
         static void ConfigureStore(StoreOptions register)
         {
-
-        }
-    }
-
-    public class HomeModule : NancyModule
-    {
-        public HomeModule()
-        {
-            Get["/"] = _ =>
-            {
-                return "Hello Ferret!";
-            };
-        }
-    }
-
-    public class MischiefModule : NancyModule
-    {
-        public MischiefModule(Mischief.Manager manager)
-            : base("/mischief")
-        {
-            Get["/{mischiefId}"] = _ =>
-            {
-
-                return "Mischief status";
-            };
-
-            Post["/map-discovery"] = _ =>
-            {
-                var command = this.Bind<OpenMaraudersMap>();
-                manager.When(command);
-                return HttpStatusCode.OK;
-            };
-
-            Post["/room-of-requirement-visit"] = _ =>
-            {
-                var command = this.Bind<GotoRoomOfRequirement>();
-                manager.When(command);
-                return HttpStatusCode.OK;
-            };
+            var stateTypes = typeof(Program)
+                .Assembly
+                .GetExportedTypes()
+                .Where(x => x.Name == "State");
+            register.RegisterDocumentTypes(stateTypes);
         }
     }
 }
