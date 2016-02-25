@@ -21,6 +21,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{D1603956
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ferret.Specs", "Ferret.Specs\Ferret.Specs.csproj", "{6B8173A1-9234-4F77-ADE0-323BE2D8D2F9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ferret.Sample", "Ferret.Sample\Ferret.Sample.csproj", "{B63C6EE2-6627-4ED8-A744-C1F09EA101EC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,6 +37,10 @@ Global
 		{6B8173A1-9234-4F77-ADE0-323BE2D8D2F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6B8173A1-9234-4F77-ADE0-323BE2D8D2F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6B8173A1-9234-4F77-ADE0-323BE2D8D2F9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B63C6EE2-6627-4ED8-A744-C1F09EA101EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B63C6EE2-6627-4ED8-A744-C1F09EA101EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B63C6EE2-6627-4ED8-A744-C1F09EA101EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B63C6EE2-6627-4ED8-A744-C1F09EA101EC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -42,5 +48,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{E2B48017-8026-475E-8EAA-337744D16D8F} = {76424667-00D8-4C4D-B8F5-E92A230A874A}
 		{6B8173A1-9234-4F77-ADE0-323BE2D8D2F9} = {69F1C96D-2880-41E7-9132-6D061A4D4FBB}
+		{B63C6EE2-6627-4ED8-A744-C1F09EA101EC} = {76424667-00D8-4C4D-B8F5-E92A230A874A}
 	EndGlobalSection
 EndGlobal
