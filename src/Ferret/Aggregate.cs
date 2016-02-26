@@ -41,7 +41,8 @@ namespace Ferret
             var domainEvent = new DomainEvent
             {
                 Id = Guid.NewGuid(),
-                Body = eventToApply
+                Body = eventToApply,
+                Type = eventToApply.GetType().FullName
             };
 
             _eventsToApply.Add(domainEvent);

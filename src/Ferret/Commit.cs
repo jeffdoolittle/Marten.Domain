@@ -16,6 +16,8 @@ namespace Ferret
 
         public int StreamVersion { get; set; }
 
+        public string AggregateType { get; set; }
+
         public DateTimeOffset CommitDateTimeUtc { get; set; }
 
         public List<DomainEvent> Events { get; set; }

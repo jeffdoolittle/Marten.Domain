@@ -62,6 +62,7 @@ namespace Ferret
                 {
                     StreamId = aggregate.Id,
                     StreamVersion = aggregate.Version,
+                    AggregateType = aggregate.GetType().FullName,
                     CommitDateTimeUtc = DateTimeOffset.UtcNow,
                     Events = aggregate.AppliedEvents.ToList()
                 };
